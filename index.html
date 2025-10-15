@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zix AI Hub</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: #0b0b0b;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #00ffae;
+      font-size: 2em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #00ffae;
+    }
+    h2 { margin-top: 35px; color: #fff; }
+    input, textarea, button {
+      width: 90%;
+      max-width: 500px;
+      margin: 10px auto;
+      display: block;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+    }
+    input, textarea { background: #1e1e1e; color: white; }
+    button {
+      background-color: #00ffae;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background-color: #00d494; }
+    img, video {
+      width: 90%;
+      max-width: 400px;
+      border-radius: 10px;
+      margin-top: 15px;
+    }
+    .result {
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: #ccc;
+    }
+    hr { border: 1px solid #222; margin: 30px 0; }
+    .loading { color: #00ffae; }
+    .prompt-box {
+      border: 1px solid #00ffae44;
+      border-radius: 10px;
+      padding: 15px;
+      background: #101010;
+      box-shadow: 0 0 10px #00ffae33;
+      margin-top: 15px;
+    }
+    a.download {
+      color: #00ffae;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 Zix AI Hub</h1>
+
+  <!-- CHAT AI -->
+  <h2>💬 Chat AI</h2>
+  <textarea id="chatInput" placeholder="Tulis pertanyaanmu di sini..."></textarea>
+  <button onclick="askAI()">Kirim</button>
+  <div id="chatResult" class="result"></div>
+
+  <hr />
+
+  <!-- AI GAMBAR -->
+  <h2>🎨 AI Gambar</h2>
+  <div class="prompt-box">
+    <p>Masukkan prompt untuk membuat gambar:</p>
+    <input id="imagePrompt" placeholder="Contoh: pemandangan malam kota futuristik" />
+    <button onclick="generateImage()">Buat Gambar</button>
+  </div>
+  <div id="imageResult" class="result"></div>
+
+  <hr />
+
+  <!-- AI VIDEO -->
+  <h2>🎥 AI Video</h2>
+  <div class="prompt-box">
+    <p>Masukkan prompt untuk mencari atau membuat video:</p>
+    <input id="videoPrompt" placeholder="Contoh: animasi kota masa depan" />
+    <button onclick="generateVideo()">Buat Video</button>
+  </div>
+  <div id="videoResult" class="result"></div>
+
+  <hr />
+
+  <!-- DOWNLOADER TIKTOK -->
+  <h2>📥 Downloader TikTok</h2>
+  <div class="prompt-box">
+    <input id="tiktokUrl" placeholder="Tempel link TikTok di sini..." />
+    <button onclick="downloadTiktok()">Download</button>
+  </div>
+  <div id="tiktokResult" class="result"></div>
+
+  <script>
+    // 🧠 CHAT AI
+    async function askAI() {
+      const q = document.getElementById("chatInput").value.trim();
+      const resDiv = document.getElementById("chatResult");
+      if (!q) return alert("Isi dulu pertanyaannya!");
+      resDiv.innerHTML = "⏳ <span class='loading'>Sedang berpikir...</span>";
+      try {
+        const res = await fetch(`https://api.monkedev.com/fun/chat?msg=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        resDiv.innerHTML = data.response || "⚠️ Tidak ada respon.";
+      } catch {
+        resDiv.innerHTML = "⚠️ Tidak bisa terhubung ke server.";
+      }
+    }
+
+    // 🎨 AI GAMBAR (Gratis)
+    async function generateImage() {
+      const q = document.getElementById("imagePrompt").value.trim();
+      const imgDiv = document.getElementById("imageResult");
+      if (!q) return alert("Masukkan prompt untuk gambar dulu!");
+      imgDiv.innerHTML = "⏳ <span class='loading'>Sedang membuat gambar...</span>";
+      try {
+        const res = await fetch(`https://lexica.art/api/v1/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.images && data.images.length > 0) {
+          const imgUrl = data.images[0].src;
+          imgDiv.innerHTML = `
+            <img src="${imgUrl}" alt="AI Gambar" /><br>
+            <a href="${imgUrl}" target="_blank" class="download">⬇️ Download Gambar</a><br>
+            <small>Prompt: ${q}</small>
+          `;
+        } else {
+          imgDiv.innerHTML = "❌ Gambar tidak ditemukan.";
+        }
+      } catch {
+        imgDiv.innerHTML = "⚠️ Gagal mengambil gambar.";
+      }
+    }
+
+    // 🎥 AI VIDEO (Gratis)
+    async function generateVideo() {
+      const q = document.getElementById("videoPrompt").value.trim();
+      const vidDiv = document.getElementById("videoResult");
+      if (!q) return alert("Masukkan prompt video dulu!");
+      vidDiv.innerHTML = "⏳ <span class='loading'>Sedang membuat video...</span>";
+      try {
+        const res = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(q)}&per_page=1`, {
+          headers: { Authorization: "563492ad6f917000010000013f5d65d4a67d4ce0a727c39b4fbb3c2a" }
+        });
+        const data = await res.json();
+        if (data.videos && data.videos.length > 0) {
+          const vidUrl = data.videos[0].video_files[0].link;
+          vidDiv.innerHTML = `
+            <video controls autoplay loop src="${vidUrl}"></video><br>
+            <a href="${vidUrl}" target="_blank" class="download">⬇️ Download Video</a><br>
+            <small>Prompt: ${q}</small>
+          `;
+        } else {
+          vidDiv.innerHTML = "❌ Tidak ada video ditemukan.";
+        }
+      } catch {
+        vidDiv.innerHTML = "⚠️ Gagal memuat video.";
+      }
+    }
+
+    // 📱 DOWNLOADER TIKTOK (Gratis)
+    async function downloadTiktok() {
+      const url = document.getElementById("tiktokUrl").value.trim();
+      const downDiv = document.getElementById("tiktokResult");
+      if (!url) return alert("Masukkan URL TikTok!");
+      downDiv.innerHTML = "⏳ <span class='loading'>Mengambil link...</span>";
+      try {
+        const res = await fetch(`https://api.tiklydown.me/api/download?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.video) {
+          downDiv.innerHTML = `
+            ✅ <a href="${data.video}" target="_blank" class="download">Klik untuk download tanpa watermark</a>
+          `;
+        } else {
+          downDiv.innerHTML = "❌ Tidak bisa mengambil video.";
+        }
+      } catch {
+        downDiv.innerHTML = "⚠️ Server TikTok bermasalah.";
+      }
+    }
+  </script>
+</body>
+</html>
